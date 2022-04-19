@@ -8,7 +8,7 @@ from deepdiff import DeepDiff
 def FileToDict(name):
     with open(name) as f:
         data = json.load(f)
-    return data.get("Data")[0]
+    return data  # .get("Data")[0]
 
 
 def ToTxt(changes, name):
@@ -26,27 +26,25 @@ def PathPretty(entry):
 
 
 if __name__ == "__main__":
-    file1 = FileToDict("data/SIM-EXT-DATA.json")
-    file2 = FileToDict("data/LIVE-EXT-DATA.json")
+    file2 = FileToDict("data/live-closed-positions-cs.json")
+    file1 = FileToDict("data/live-closed-positions-hist.json")
     ddiff = DeepDiff(file1, file2, ignore_order=True)
+    print(dict(ddiff).keys())
 
-    print("Fields added")
-    diff_items = dict(ddiff)["dictionary_item_added"]
-    output = ""
-    for entry in diff_items:
-        output += PathPretty(entry) + "\n"
-    ToTxt(output, "attr_missing")
-    output = ""
-    print("Values changed")
-    diff_items = dict(ddiff)["values_changed"]
-    for entry in diff_items:
-        # todo: logic to determine if change is actually an issue
-        pretty_diff = (
-            "("
-            + str(diff_items[entry]["old_value"])
-            + " => "
-            + str(diff_items[entry]["new_value"])
-            + ")"
-        )
-        output += PathPretty(entry) + pretty_diff + "\n"
-    ToTxt(output, "value_changed")
+    for key in dict(ddiff).keys():
+        print(key)
+        diff_items = dict(ddiff)[key]
+        output = ""
+        for entry in diff_items:
+            pretty_diff = ""
+            if key == "values_changed":
+                pretty_diff = (
+                    "("
+                    + str(diff_items[entry]["old_value"])
+                    + " => "
+                    + str(diff_items[entry]["new_value"])
+                    + ")"
+                )
+            output += PathPretty(entry) + pretty_diff + "\n"
+
+        ToTxt(output, key)
